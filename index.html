@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#15111d">
+<title>گالری افروز</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0e0c12;color:#f7f3fb;font-family:Tahoma,Arial,sans-serif}
+header{position:sticky;top:0;z-index:5;padding:18px 5%;display:flex;justify-content:space-between;align-items:center;background:#17131fcc;backdrop-filter:blur(14px);border-bottom:1px solid #332d3d}
+.brand{font-size:clamp(30px,8vw,50px);font-weight:900}.sub{color:#aaa0b3;margin-top:5px}
+button{font:inherit;cursor:pointer;border:1px solid #3b3446;border-radius:12px;padding:11px 16px;background:#28232f;color:#fff}
+.primary{background:#6d2bfa;border-color:#9369ed}.danger{background:#a62e43}.full{width:100%;margin-top:12px}
+main{width:min(1200px,92%);margin:auto;padding:28px 0 60px}.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px}
+.card{overflow:hidden;border-radius:19px;background:#19161f;border:1px solid #302a38;box-shadow:0 12px 35px #0007}
+.card img{display:block;width:100%;height:255px;object-fit:cover;cursor:pointer}.body{padding:14px}.body h3{margin:0 0 7px}.body p{color:#b9b0c0;line-height:1.8;margin:0 0 7px;white-space:pre-wrap}.date{font-size:12px;color:#a376ee}
+.empty{text-align:center;color:#aaa;padding:70px 10px;grid-column:1/-1}.notice{padding:12px;border:1px solid #5b4c27;background:#302817;color:#ead78f;border-radius:12px;margin-bottom:18px}
+.modal{position:fixed;inset:0;z-index:20;background:#000c;display:flex;align-items:center;justify-content:center;padding:18px}.hide{display:none!important}
+.box{position:relative;width:min(500px,100%);max-height:90vh;overflow:auto;padding:25px;border-radius:21px;background:#18151e;border:1px solid #3b3446}
+.box.large{width:min(760px,100%)}.close{position:absolute;top:10px;left:12px;font-size:26px;padding:3px 10px}
+.box h2{margin:0 0 8px}label{display:block;margin:14px 0 6px;color:#dcd4e1}
+input,textarea,select{width:100%;padding:12px;border-radius:11px;border:1px solid #3b3543;background:#0f0d13;color:#fff;font:inherit}textarea{min-height:95px;resize:vertical}
+.msg{min-height:22px;color:#e7b4bd;margin-top:9px}.muted{color:#a9a0b0}
+.adminhead{display:flex;justify-content:space-between;align-items:center;gap:10px}.adminlist{display:grid;gap:10px;margin-top:16px}
+.item{display:flex;align-items:center;gap:10px;padding:10px;background:#211d27;border:1px solid #342e3c;border-radius:14px}.thumb{width:75px;height:58px;object-fit:cover;border-radius:9px}.grow{flex:1;min-width:0}.grow b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.actions{display:flex;gap:6px}
+.preview{width:100%;max-height:270px;object-fit:contain;border-radius:13px;margin-top:10px}.viewer{background:#000e}.viewer img{max-width:94vw;max-height:83vh;object-fit:contain}.viewer .close{position:fixed}
+@media(max-width:650px){header{padding:15px 4%}.brand{font-size:31px}main{width:94%;padding-top:20px}.gallery{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.card img{height:175px}.body{padding:10px}.body h3{font-size:15px}.body p{font-size:13px}.item{align-items:flex-start}.actions{flex-direction:column}}
+</style>
+</head>
+<body>
+<header>
+  <div><div class="brand">گالری افروز</div><div class="sub">گالری آنلاین عکس‌ها</div></div>
+  <button id="manage">⚙️ مدیریت</button>
+</header>
+<main>
+  <div id="notice" class="notice">در حال اتصال به گالری آنلاین...</div>
+  <section id="gallery" class="gallery"><div class="empty">در حال بارگذاری...</div></section>
+</main>
+
+<div id="login" class="modal hide"><div class="box">
+<button class="close" data-close="login">×</button><h2>ورود به مدیریت</h2><p class="muted">مدیر را انتخاب کنید و رمز ورود را وارد کنید.</p>
+<label>مدیر</label><select id="manager"><option>یوسف</option><option>حمید</option><option>زهره</option></select>
+<label>رمز مدیریت</label><input id="password" type="password" inputmode="numeric" placeholder="رمز ورود">
+<button id="loginBtn" class="primary full">ورود</button><div id="loginMsg" class="msg"></div>
+</div></div>
+
+<div id="admin" class="modal hide"><div class="box large">
+<button class="close" data-close="admin">×</button><div class="adminhead"><div><h2>مدیریت گالری</h2><span id="welcome" class="muted"></span></div><button id="logout">خروج</button></div>
+<button id="add" class="primary full">➕ افزودن عکس</button><div id="adminlist" class="adminlist"></div>
+</div></div>
+
+<div id="photo" class="modal hide"><div class="box">
+<button class="close" data-close="photo">×</button><h2 id="formTitle">افزودن عکس</h2>
+<label>عنوان عکس</label><input id="title" maxlength="120" placeholder="عنوان عکس">
+<label>توضیحات <span class="muted">(اختیاری)</span></label><textarea id="desc" maxlength="500" placeholder="توضیحات"></textarea>
+<label>تاریخ ثبت</label><input id="date" type="date">
+<label>انتخاب عکس</label><input id="file" type="file" accept="image/*">
+<img id="preview" class="preview hide" alt="">
+<button id="save" class="primary full">ذخیره</button><div id="saveMsg" class="msg"></div>
+</div></div>
+
+<div id="viewer" class="modal viewer hide"><button class="close" data-close="viewer">×</button><img id="viewImg" alt=""></div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import{getAuth,signInAnonymously,signInWithEmailAndPassword,signOut}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+import{getFirestore,collection,addDoc,getDocs,deleteDoc,updateDoc,doc,query,orderBy,serverTimestamp}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import{getStorage,ref,uploadBytes,getDownloadURL,deleteObject}from"https://www.gstatic.com/firebasejs/12.1.0/firebase-storage.js";
+
+/* =========================================================
+   فقط این قسمت را بعد از ساخت Firebase پر کن.
+   ========================================================= */
+const firebaseConfig={
+ apiKey:"YOUR_API_KEY",
+ authDomain:"YOUR_PROJECT_ID.firebaseapp.com",
+ projectId:"YOUR_PROJECT_ID",
+ storageBucket:"YOUR_PROJECT_ID.firebasestorage.app",
+ messagingSenderId:"YOUR_MESSAGING_SENDER_ID",
+ appId:"YOUR_APP_ID"
+};
+
+/* ایمیل حساب Firebase هر مدیر را اینجا قرار بده */
+const ADMIN_EMAILS={
+ "یوسف":"YOUSef_ADMIN_EMAIL",
+ "حمید":"HAMID_ADMIN_EMAIL",
+ "زهره":"ZOHREH_ADMIN_EMAIL"
+};
+/* ========================================================= */
+
+const ready=!Object.values(firebaseConfig).some(x=>String(x).includes("YOUR_"));
+let auth,db,storage,currentManager=null,editId=null,oldPhoto=null;
+const $=x=>document.querySelector(x);
+const show=x=>$("#"+x).classList.remove("hide");
+const hide=x=>$("#"+x).classList.add("hide");
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+const today=()=>{let d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+
+if(ready){
+ const app=initializeApp(firebaseConfig);auth=getAuth(app);db=getFirestore(app);storage=getStorage(app);
+ $("#notice").classList.add("hide");
+}else{
+ $("#notice").textContent="برای فعال شدن ذخیره آنلاین، بخش firebaseConfig همین فایل را با اطلاعات Firebase خودت پر کن.";
+}
+
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>hide(b.dataset.close));
+$("#manage").onclick=()=>show("login");
+
+async function viewerLogin(){if(!auth.currentUser)await signInAnonymously(auth)}
+async function load(){
+ if(!ready){$("#gallery").innerHTML='<div class="empty">Firebase هنوز به سایت متصل نشده است.</div>';return}
+ try{
+  await viewerLogin();
+  const s=await getDocs(query(collection(db,"photos"),orderBy("createdAt","desc")));
+  $("#gallery").innerHTML="";
+  if(s.empty){$("#gallery").innerHTML='<div class="empty">هنوز عکسی ثبت نشده است.</div>';return}
+  s.forEach(d=>{
+   let p=d.data(),a=document.createElement("article");a.className="card";
+   a.innerHTML='<img src="'+esc(p.url)+'" alt="'+esc(p.title||"عکس")+'"><div class="body"><h3>'+esc(p.title||"بدون عنوان")+'</h3>'+(p.description?'<p>'+esc(p.description)+'</p>':"")+(p.date?'<div class="date">'+esc(p.date)+'</div>':"")+'</div>';
+   a.querySelector("img").onclick=()=>{$("#viewImg").src=p.url;show("viewer")};
+   $("#gallery").appendChild(a);
+  });
+ }catch(e){console.error(e);$("#gallery").innerHTML='<div class="empty">خطا در اتصال به گالری آنلاین.</div>'}
+}
+$("#loginBtn").onclick=async()=>{
+ $("#loginMsg").textContent="";
+ if(!ready){$("#loginMsg").textContent="ابتدا Firebase را تنظیم کن.";return}
+ let m=$("#manager").value,p=$("#password").value,email=ADMIN_EMAILS[m];
+ if(!email||email.includes("ADMIN_EMAIL")){$("#loginMsg").textContent="ایمیل مدیر در فایل تنظیم نشده است.";return}
+ try{await signInWithEmailAndPassword(auth,email,p);currentManager=m;$("#welcome").textContent="مدیر: "+m;hide("login");show("admin");await adminLoad()}
+ catch(e){$("#loginMsg").textContent="ورود ناموفق بود. ایمیل و رمز Firebase را بررسی کن."}
+};
+$("#logout").onclick=async()=>{await signOut(auth);currentManager=null;hide("admin")};
+$("#add").onclick=()=>{
+ editId=null;oldPhoto=null;$("#formTitle").textContent="افزودن عکس";$("#title").value="";$("#desc").value="";$("#date").value=today();$("#file").value="";$("#preview").classList.add("hide");$("#saveMsg").textContent="";show("photo")
+};
+$("#file").onchange=e=>{let f=e.target.files[0];if(f){$("#preview").src=URL.createObjectURL(f);$("#preview").classList.remove("hide")}};
+async function adminLoad(){
+ let s=await getDocs(query(collection(db,"photos"),orderBy("createdAt","desc")));$("#adminlist").innerHTML="";
+ if(s.empty){$("#adminlist").innerHTML='<div class="empty">عکسی ثبت نشده است.</div>';return}
+ s.forEach(d=>{
+  let p=d.data(),x=document.createElement("div");x.className="item";
+  x.innerHTML='<img class="thumb" src="'+esc(p.url)+'"><div class="grow"><b>'+esc(p.title||"بدون عنوان")+'</b><small class="muted">'+esc(p.date||"")+'</small></div><div class="actions"><button class="edit">✏️</button><button class="danger del">🗑️</button></div>';
+  x.querySelector(".edit").onclick=()=>edit(d.id,p);x.querySelector(".del").onclick=()=>remove(d.id,p);$("#adminlist").appendChild(x)
+ })
+}
+function edit(id,p){editId=id;oldPhoto=p;$("#formTitle").textContent="ویرایش اطلاعات عکس";$("#title").value=p.title||"";$("#desc").value=p.description||"";$("#date").value=p.date||today();$("#file").value="";$("#preview").src=p.url;$("#preview").classList.remove("hide");$("#saveMsg").textContent="";show("photo")}
+async function remove(id,p){
+ if(!confirm("این عکس برای همه حذف شود؟"))return;
+ try{await deleteDoc(doc(db,"photos",id));if(p.path)await deleteObject(ref(storage,p.path)).catch(()=>{});await load();await adminLoad()}catch(e){alert("حذف انجام نشد.")}
+}
+$("#save").onclick=async()=>{
+ let title=$("#title").value.trim(),desc=$("#desc").value.trim(),date=$("#date").value,file=$("#file").files[0];
+ if(!title){$("#saveMsg").textContent="عنوان عکس را وارد کن.";return}
+ if(!date){$("#saveMsg").textContent="تاریخ را وارد کن.";return}
+ $("#saveMsg").textContent="در حال ذخیره...";
+ try{
+  if(editId){
+   let data={title,description:desc,date,updatedAt:serverTimestamp()};
+   if(file){let path="photos/"+crypto.randomUUID()+"-"+file.name.replace(/[^\w.\-]+/g,"_"),r=ref(storage,path);await uploadBytes(r,file,{contentType:file.type});data.url=await getDownloadURL(r);data.path=path;if(oldPhoto?.path)await deleteObject(ref(storage,oldPhoto.path)).catch(()=>{})}
+   await updateDoc(doc(db,"photos",editId),data)
+  }else{
+   if(!file){$("#saveMsg").textContent="برای عکس جدید فایل انتخاب کن.";return}
+   let path="photos/"+crypto.randomUUID()+"-"+file.name.replace(/[^\w.\-]+/g,"_"),r=ref(storage,path);await uploadBytes(r,file,{contentType:file.type});let url=await getDownloadURL(r);
+   await addDoc(collection(db,"photos"),{title,description:desc,date,url,path,createdAt:serverTimestamp(),createdBy:auth.currentUser?.uid||null,manager:currentManager})
+  }
+  hide("photo");await load();await adminLoad()
+ }catch(e){console.error(e);$("#saveMsg").textContent="ذخیره انجام نشد. Firebase Rules را بررسی کن."}
+};
+load();
+</script>
+</body>
+</html>
